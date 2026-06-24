@@ -19,9 +19,8 @@ urdf_path = "assets/fanuc_r1000ia_support/urdf/r1000ia80f.urdf"
 robot_id = p.loadURDF(urdf_path, useFixedBase=True)
 
 num_joints = p.getNumJoints(robot_id)
-movable_joints = [i for i in range(num_joints) if p.getJointInfo(robot_id, i)[2] in [p.JOINT_REVOLUTE, p.JOINT_PRISMATIC]]
 
-end_effector_index = num_joints - 1
+end_effector_index = num_joints - 1 
 
 target_positions = [
     [1.5, 0, 1.0],
@@ -34,26 +33,34 @@ target_positions = [
 # Function to move smoothly
 def move_to_xyz(target_pos, steps=120):
     target_angles = p.calculateInverseKinematics(robot_id, end_effector_index, target_pos)
-    current_angles = [p.getJointState(robot_id, j)[0] for j in movable_joints]
+    
+    current_angles = [p.getJointState(robot_id, i)[0] for i in range(len(target_angles))]
 
     for t in range(steps):
         blend = t / steps
-        interpolated = [(1 - blend) * c + blend * tg for c, tg in zip(current_angles, target_angles)]
-        for i, j in enumerate(movable_joints):
-            p.setJointMotorControl2(
-                bodyIndex=robot_id,
-                jointIndex=j,
-                controlMode=p.POSITION_CONTROL,
-                targetPosition=interpolated[i],
-                force=500,
-                maxVelocity=1.5
-            )
+      
+        for j in range(len(target_angles)):
+            joint_info = p.getJointInfo(robot_id, j)
+            if joint_info[2] in [p.JOINT_REVOLUTE, p.JOINT_PRISMATIC]:
+                interpolated_angle = (1 - blend) * current_angles[j] + blend * target_angles[j]
+                
+                p.setJointMotorControl2(
+                    bodyIndex=robot_id,
+                    jointIndex=j,
+                    controlMode=p.POSITION_CONTROL,
+                    targetPosition=interpolated_angle,
+                    force=500,
+                    maxVelocity=1.5
+                )
         p.stepSimulation()
         time.sleep(1./240.)
 
+# Execute trajectory
 for pos in target_positions:
+    print(f"Moving to: {pos}")
     move_to_xyz(pos, steps=240)
 
+# Keep simulation alive
 try:
     while True:
         p.stepSimulation()

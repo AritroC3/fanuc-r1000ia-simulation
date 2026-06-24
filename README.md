@@ -15,10 +15,13 @@ This is a 3D robotics simulation project for the 6-DOF Fanuc R-1000iA industrial
 1. Make sure you have PyBullet installed in your Python environment:
    ```bash
    pip install pybullet
-2. Run the path-fixer script:
+2. Run this bash script to get into the project
+    ```bash
+    conda activate fanuc_project
+3. Run the path-fixer script:
     ```bash
     python fix_urdf_paths.py
-3. Launch the simulation:
+4. Launch the simulation:
     ```bash
     python fanuc_pybullet.py
 ## Acknowledgments & Credits
